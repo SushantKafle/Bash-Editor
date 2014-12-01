@@ -44,6 +44,10 @@ class ScrolledText(Frame):
         self.text.insert('1.0', text)                  
         self.text.mark_set(INSERT, '1.0')
         self.text.focus()
+
+        data = self.text.get("1.0",END)#
+        lineNum = (len(data.split("\n"))-1)
+        self.line.config(text=self.getLineArray(lineNum))
         
     def gettext(self):                               
         return self.text.get('1.0', END+'-1c')
@@ -119,11 +123,11 @@ class SimpleEditor(ScrolledText):
                 self.text.see(INSERT)                    
                 self.text.focus()                        
 
-#if there are no cmdline arguments, open a new file. 
+#if there are no cmdline arguments, open a new file.
+root = Tk()
+
 if len(sys.argv) > 1:
-	SimpleEditor(file=sys.argv[1]).mainloop()                
-else:
-        root = Tk()
+	app = SimpleEditor(root,file=sys.argv[1])                
+else: 
         app = SimpleEditor(root)
-        root.mainloop() 
-	#SimpleEditor().mainloop()
+root.mainloop()
