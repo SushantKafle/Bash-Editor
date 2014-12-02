@@ -1,32 +1,55 @@
-from Tkinter import * 
+from Tkinter import *
+import ttk
+import tkFileDialog
 from tkSimpleDialog import *
 from tkFileDialog import *
 from tkMessageBox import *
 
+import os
+import glob
+
 class ScrolledText(Frame):
     def __init__(self, parent=None, text='', file=None):
         Frame.__init__(self, parent)
+        self.filename = ""
         self.var = StringVar()
-        self.pack(expand=YES, fill=BOTH)               
+        self.pack(expand=YES, fill=BOTH)
+        #self.grid(row=0,column=0)
         self.makewidgets()
         self.settext(text, file)
-        
-        
-        
+
     def makewidgets(self):
         sbar = Scrollbar(self)
         text = Text(self, relief=SUNKEN)
         self.line = Label(self, text="1")
-        sbar.config(command=text.yview)                  
+        sbar.config(command=text.yview)
         text.config(yscrollcommand=sbar.set)
-        self.line.grid(row=0,column=0, sticky=N)
-        text.grid(row=0,column=1)
-        sbar.grid(row=0,column=2, sticky=E+W+N+S)
+        
+        #self.line.grid(row=0,column=1, sticky=N)
+        text.grid(row=0,column=2)
+        sbar.grid(row=0,column=3, sticky=E+W+N+S)
         self.text = text
+        text.bind("<Control-a>", self.selectall)
+        text.bind("<Control-s>", self.save)
         text.bind("<Key>", self.key)
 
+    def save(self,event):
+        if len(self.filename) == 0:
+            self.filename = asksaveasfilename()
+        if  self.filename:
+            print self.filename
+            alltext = self.gettext()                      
+            open(self.filename, 'w').write(alltext)
+    
+    def selectall(self, event):
+        self.text.tag_add(SEL, '1.0', END)     
+        self.text.mark_set(INSERT, '1.0')         
+        self.text.see(INSERT)                    
+        self.text.focus()
+        return "break"
+    
     def key(self,event):
-        data = self.text.get("1.0",END)#
+        data = self.text.get("1.0",END)
         lineNum = (len(data.split("\n"))-1)
         self.line.config(text=self.getLineArray(lineNum))
 
@@ -59,13 +82,16 @@ class SimpleEditor(ScrolledText):
         frm = Frame(parent)
         frm.pack(fill=X)
 
-        parent.title("Simple menu")
+        parent.title("Bash Editor")
         
         menubar = Menu(parent)
         parent.config(menu=menubar)
         
         fileMenu = Menu(menubar,tearoff=0)
+        fileMenu.add_command(label="Open Project", command=self.askDirectory)
+        fileMenu.add_command(label="Open File", command=self.askopenfilename)
         fileMenu.add_command(label="Save", command=self.onSave)
+        fileMenu.add_command(label="Save As", command=self.onSaveAs)
         fileMenu.add_command(label="Exit", command=self.onQuit)
 
         editMenu = Menu(menubar, tearoff=0)
@@ -73,23 +99,149 @@ class SimpleEditor(ScrolledText):
         editMenu.add_command(label="Cut", command= self.onCut)
         editMenu.add_command(label="Paste", command= self.onPaste)
         editMenu.add_command(label="Find", command= self.onFind)
+        editMenu.add_command(label="SelectAll", command= self.onSelectAll)
 
         menubar.add_cascade(label="File", menu=fileMenu)
         menubar.add_cascade(label="Edit", menu=editMenu)
         
+        vsb = Scrollbar(orient="vertical")
+        hsb = Scrollbar(orient="horizontal")
+        
+        self.tree = ttk.Treeview(columns=("fullpath", "type", "size"),
+        displaycolumns="size")
+        
+        self.tree.heading("#0", text="Directory Structure", anchor='w')
+        self.tree.heading("size", text="File Size", anchor='w')
+        self.tree.column("size", stretch=0, width=100)
+
+        self.populate_roots(self.tree)
+        self.tree.bind('<<TreeviewOpen>>', self.update_tree)
+        self.tree.bind('<Double-Button-1>', self.change_dir)
+        
+        self.tree.pack(side=LEFT, fill=Y)
         ScrolledText.__init__(self, parent, file=file)
         
         self.text.config(font=('courier', 9, 'normal'))
+
+    def populate_tree(self,tree, node):
+        if tree.set(node, "type") != 'directory':
+            return
+        path = tree.set(node, "fullpath")
+        tree.delete(*tree.get_children(node))
+
+        parent = tree.parent(node)
+        special_dirs = [] if parent else glob.glob('.') + glob.glob('..')
+
+        for p in special_dirs + os.listdir(path):
+            ptype = None
+            p = os.path.join(path, p).replace('\\', '/')
+            if os.path.isdir(p): ptype = "directory"
+            elif os.path.isfile(p): ptype = "file"
+
+            fname = os.path.split(p)[1]
+            id = tree.insert(node, "end", text=fname, values=[p, ptype])
+
+            if ptype == 'directory':
+                if fname not in ('.', '..'):
+                    tree.insert(id, 0, text="dummy")
+                    tree.item(id, text=fname)
+            elif ptype == 'file':
+                size = os.stat(p).st_size
+                tree.set(id, "size", "%d bytes" % size)
+
+
+    def populate_roots(self,tree, path=''):
+        if len(path) == 0:
+            dir = os.path.abspath('.').replace('\\', '/')
+        else:
+            dir = path
+        
+        node = tree.insert('', 'end', text=dir, values=[dir, "directory"])
+        self.populate_tree(tree, node)
+
+    def update_tree(self,event):
+        tree = event.widget
+        self.populate_tree(tree, tree.focus())
+
+    def change_dir(self,event):
+        tree = event.widget
+        node = tree.focus()
+        if tree.parent(node):
+            path = os.path.abspath(tree.set(node, "fullpath"))
+            if os.path.isdir(path):
+                
+                os.chdir(path)
+                tree.delete(tree.get_children(''))
+                self.populate_roots(tree)
+            elif os.path.isfile(path):
+                self.filename = path
+                self.settext(self.text, path)
+
+    def autoscroll(self,sbar, first, last):
+        """Hide and show scrollbar as needed."""
+        first, last = float(first), float(last)
+        if first <= 0 and last >= 1:
+            sbar.grid_remove()
+        else:
+            sbar.grid()
+        sbar.set(first, last)
+
+    def askopenfilename(self):
+        self.file_opt = options = {}
+        options['defaultextension'] = '.txt'
+        options['filetypes'] = [('all files', '.*'), ('text files', '.txt')]
+        options['initialdir'] = 'C:\\'
+        options['initialfile'] = 'myfile.txt'
+        options['parent'] = root
+        options['title'] = 'This is a title'
+        filename = tkFileDialog.askopenfilename(**self.file_opt)
+        if filename:
+            fileRoot ='/'.join(filename.split("/")[:-1])
+            self.filename = filename
+            self.settext(self.text, filename)
+            if os.path.isdir(fileRoot):
+                self.tree.delete(self.tree.get_children(''))
+                self.populate_roots(self.tree,fileRoot)
+            
+
+    def askDirectory(self):
+        self.dir_opt = options = {}
+        options['initialdir'] = 'C:\\'
+        options['mustexist'] = False
+        options['parent'] = root
+        options['title'] = 'This is a title'
+        path = tkFileDialog.askdirectory(**self.dir_opt)
+        self.tree.delete(self.tree.get_children(''))
+        self.populate_roots(self.tree,path)
+        return 
+        
+        
+    def onSelectAll(self):
+        self.text.tag_add(SEL, '1.0', END)     
+        self.text.mark_set(INSERT, '1.0')         
+        self.text.see(INSERT)                    
+        self.text.focus()
+        return "break"
         
     def onQuit(self):
         ans = askokcancel('Confirm exit', "Sure you want to Quit?")
         if ans: self.quit()
         
     def onSave(self):
-        filename = asksaveasfilename()
-        if filename:
+        if len(self.filename) == 0:
+            self.filename = asksaveasfilename()
+        if  self.filename:
+            print self.filename
             alltext = self.gettext()                      
-            open(filename, 'w').write(alltext)
+            open(self.filename, 'w').write(alltext)
+
+    def onSaveAs(self):
+        self.filename = asksaveasfilename()
+        if  self.filename:
+            print self.filename
+            alltext = self.gettext()                      
+            open(self.filename, 'w').write(alltext)
+            
 
     def onCopy(self):
         text = self.text.get(SEL_FIRST, SEL_LAST)
@@ -130,4 +282,6 @@ if len(sys.argv) > 1:
 	app = SimpleEditor(root,file=sys.argv[1])                
 else: 
         app = SimpleEditor(root)
+root.grid_columnconfigure(0, weight=1)
+root.grid_rowconfigure(0, weight=1)
 root.mainloop()
