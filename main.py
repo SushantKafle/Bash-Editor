@@ -8,24 +8,24 @@ from tkMessageBox import *
 import os
 import glob
 
+from CustomText import CustomText
+
 class ScrolledText(Frame):
     def __init__(self, parent=None, text='', file=None):
         Frame.__init__(self, parent)
         self.filename = ""
         self.var = StringVar()
         self.pack(expand=YES, fill=BOTH)
-        #self.grid(row=0,column=0)
         self.makewidgets()
         self.settext(text, file)
 
     def makewidgets(self):
         sbar = Scrollbar(self)
-        text = Text(self, relief=SUNKEN)
+        text = CustomText(self, relief=SUNKEN, background="#fefefe")
         self.line = Label(self, text="1")
         sbar.config(command=text.yview)
         text.config(yscrollcommand=sbar.set)
         
-        #self.line.grid(row=0,column=1, sticky=N)
         text.grid(row=0,column=2)
         sbar.grid(row=0,column=3, sticky=E+W+N+S)
         self.text = text
@@ -51,8 +51,19 @@ class ScrolledText(Frame):
     def key(self,event):
         data = self.text.get("1.0",END)
         lineNum = (len(data.split("\n"))-1)
+        self.setKeywords();
         self.line.config(text=self.getLineArray(lineNum))
 
+    def setKeywords(self):
+        self.text.tag_delete("blue")
+        self.text.tag_configure("blue", foreground = "blue")
+        keywords = ["alias ","bg ","builtin ","break ","case ","cd ","command ","continue ","disown ","echo ","exec ","exit ","export ","eval ","FALSE ","fg ","for ","function ","getconf ","getopts ","hist ","if ","jobs ","kill ","let ","newgrp ","print ","printf ","pwd ","read ","readonly ","return ","select ","set ","shift ","sleep ","test ","time ","trap ","TRUE ","typeset ","ulimit ","umask ","unalias ","unset ","until ","wait ","whence ","while ","do ","done ","esac ","fi ", "then "," alias"," bg"," builtin"," break"," case"," cd"," command"," continue"," disown"," echo"," exec"," exit"," export"," eval"," FALSE"," fg"," for"," function"," getconf"," getopts"," hist"," if"," jobs"," kill"," let"," newgrp"," print"," printf"," pwd"," read"," readonly"," return"," select"," set"," shift"," sleep"," test"," time"," trap"," TRUE"," typeset"," ulimit"," umask"," unalias"," unset"," until"," wait"," whence"," while"," do"," done"," esac"," fi", " then"]
+        for keyword in keywords:
+            self.text.highlight_pattern(keyword, "blue")
+        self.text.tag_delete("green")
+        self.text.tag_configure("green", foreground = "green")
+        self.text.highlight_line("#", "green")
+            
     def getLineArray(self, lineNum):
         num = ""
         for i in range(lineNum):
@@ -64,7 +75,8 @@ class ScrolledText(Frame):
         if file: 
             text = open(file, 'r').read()
         self.text.delete('1.0', END)                   
-        self.text.insert('1.0', text)                  
+        self.text.insert('1.0', text)
+        self.setKeywords();
         self.text.mark_set(INSERT, '1.0')
         self.text.focus()
 
@@ -121,7 +133,7 @@ class SimpleEditor(ScrolledText):
         self.tree.pack(side=LEFT, fill=Y)
         ScrolledText.__init__(self, parent, file=file)
         
-        self.text.config(font=('courier', 9, 'normal'))
+        self.text.config(font=('courier', 12, 'normal'))
 
     def populate_tree(self,tree, node):
         if tree.set(node, "type") != 'directory':
