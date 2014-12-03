@@ -25,7 +25,7 @@ class CustomText(tk.Text):
 
         count = tk.IntVar()
         while True:
-            index = self.search(pattern, "matchEnd","searchLimit",
+            index = self.search(pattern, "matchEnd", "searchLimit",
                                 count=count, regexp=regexp)
             if index == "": break
             self.mark_set("matchStart", index)
@@ -33,23 +33,41 @@ class CustomText(tk.Text):
             self.mark_set("matchEnd", "%s lineend" % index)
             self.tag_add(tag, "matchStart","matchEnd")
 
-    def highlight_comments(self, pattern, tag, start="1.0", end="end", regexp=False):
-        
+    def highlight_quotes(self, tag, start="1.0", end="end", regexp=True):
         start = self.index(start)
         end = self.index(end)
-        self.mark_set("matchStart",start)
-        self.mark_set("matchEnd",start)
+        self.mark_set("matchStart", start)
+        self.mark_set("matchEnd", start)
         self.mark_set("searchLimit", end)
 
         count = tk.IntVar()
         while True:
-            index = self.search(pattern, "matchEnd","searchLimit",
-                                count=count, regexp=regexp)
-            if index == "": break
-            self.mark_set("matchStart", index)
+            index1 = self.search(r'\"', "matchEnd","searchLimit", count=count, regexp=regexp)
+
+            if index1 == "": break
             
-            self.mark_set("matchEnd", "%s lineend" % index)
-            self.tag_add(tag, "matchStart","matchEnd")
+            
+            temp = int(index1.split(".")[1])#+1
+            indx1 = ".".join([index1.split(".")[0], str(temp)])
+            
+            index2 = self.search(r'\"',indx1,"searchLimit", count=count, regexp=regexp)
+
+            if index2 == "": index2 = "end"
+            
+            
+            temp = int(index2.split(".")[1])#+1
+            indx2 = ".".join([index2.split(".")[0], str(temp)])
+            
+            self.tag_add(tag, index1, indx2)
+
+            break
+
+            #break
+            
+            #self.mark_set("matchStart",str(float(index1)+(0.1)))
+            
+            self.mark_set("matchEnd", indx2)
+            
     
 
     def highlight_pattern(self, pattern, tag, start="1.0", end="end", regexp=False):

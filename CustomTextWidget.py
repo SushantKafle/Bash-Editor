@@ -48,8 +48,6 @@ class ScrolledText(Frame):
         return "break"
     
     def key(self,event):
-        data = self.text.get("1.0",END)
-        lineNum = (len(data.split("\n"))-1)
         self.setKeywords();
     
     def setKeywords(self):
@@ -62,13 +60,15 @@ class ScrolledText(Frame):
             commentSigns = ["#"]
         elif ".py" in self.filename:
             keywords = ['and', 'as', 'assert', 'break', 'class', 'continue', 'def', 'del', 'elif', 'else', 'except', 'exec', 'finally', 'for', 'from', 'global', 'if', 'import', 'in', 'is', 'lambda', 'not', 'or', 'pass', 'print', 'raise', 'return', 'try', 'while', 'with', 'yield']
-            commentSigns = ["#"]
+            commentSigns = [r'#\(\[a-z,A-Z])']
 
         self.text.highlight_keyword(keywords, "blue")
-        self.text.tag_delete("green")
-        self.text.tag_configure("green", foreground = "green")
-        for commentSign in commentSigns:
-            self.text.highlight_line(commentSign, "green")
+        self.text.tag_delete("red")
+        self.text.tag_configure("red", foreground = "#a05050")
+        self.text.highlight_quotes("red")
+        
+        #for commentSign in commentSigns:
+            #self.text.highlight_comments(commentSign, "green")
             
     def settext(self, text='', file=None):
         if file: 
@@ -78,10 +78,6 @@ class ScrolledText(Frame):
         self.setKeywords();
         self.text.mark_set(INSERT, '1.0')
         self.text.focus()
-
-        #self.text.tag_delete("current_line")
-        #self.text.tag_configure("current_line", background="#e9e9e9")
-        #self.text.tag_add("current_line", "insert linestart", "insert lineend")
         
     def gettext(self):                               
         return self.text.get('1.0', END+'-1c')
