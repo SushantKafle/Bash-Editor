@@ -25,9 +25,10 @@ class ScrolledText(Frame):
         self.line = Label(self, text="1")
         sbar.config(command=text.yview)
         text.config(yscrollcommand=sbar.set)
-        
-        text.grid(row=0,column=2)
-        sbar.grid(row=0,column=3, sticky=E+W+N+S)
+        self.grid_rowconfigure(0, weight=1)
+        self.grid_columnconfigure(0, weight=1)
+        text.grid(row=0,column=0,sticky=E+W+N+S)
+        sbar.grid(row=0,column=1, sticky=E+W+N+S)
         self.text = text
         text.bind("<Control-a>", self.selectall)
         text.bind("<Control-s>", self.save)
@@ -57,12 +58,23 @@ class ScrolledText(Frame):
     def setKeywords(self):
         self.text.tag_delete("blue")
         self.text.tag_configure("blue", foreground = "blue")
-        keywords = ["alias ","bg ","builtin ","break ","case ","cd ","command ","continue ","disown ","echo ","exec ","exit ","export ","eval ","FALSE ","fg ","for ","function ","getconf ","getopts ","hist ","if ","jobs ","kill ","let ","newgrp ","print ","printf ","pwd ","read ","readonly ","return ","select ","set ","shift ","sleep ","test ","time ","trap ","TRUE ","typeset ","ulimit ","umask ","unalias ","unset ","until ","wait ","whence ","while ","do ","done ","esac ","fi ", "then "," alias"," bg"," builtin"," break"," case"," cd"," command"," continue"," disown"," echo"," exec"," exit"," export"," eval"," FALSE"," fg"," for"," function"," getconf"," getopts"," hist"," if"," jobs"," kill"," let"," newgrp"," print"," printf"," pwd"," read"," readonly"," return"," select"," set"," shift"," sleep"," test"," time"," trap"," TRUE"," typeset"," ulimit"," umask"," unalias"," unset"," until"," wait"," whence"," while"," do"," done"," esac"," fi", " then"]
-        for keyword in keywords:
-            self.text.highlight_pattern(keyword, "blue")
+        keywords = []
+        commentSigns = []
+        if ".ksh" in self.filename:
+            keywords = ["alias ","bg ","builtin ","break ","case ","cd ","command ","continue ","disown ","echo ","exec ","exit ","export ","eval ","FALSE ","fg ","for ","function ","getconf ","getopts ","hist ","if ","jobs ","kill ","let ","newgrp ","print ","printf ","pwd ","read ","readonly ","return ","select ","set ","shift ","sleep ","test ","time ","trap ","TRUE ","typeset ","ulimit ","umask ","unalias ","unset ","until ","wait ","whence ","while ","do ","done ","esac ","fi ", "then "," alias"," bg"," builtin"," break"," case"," cd"," command"," continue"," disown"," echo"," exec"," exit"," export"," eval"," FALSE"," fg"," for"," function"," getconf"," getopts"," hist"," if"," jobs"," kill"," let"," newgrp"," print"," printf"," pwd"," read"," readonly"," return"," select"," set"," shift"," sleep"," test"," time"," trap"," TRUE"," typeset"," ulimit"," umask"," unalias"," unset"," until"," wait"," whence"," while"," do"," done"," esac"," fi", " then"]
+            commentSigns = ["#"]
+        elif ".py" in self.filename:
+            keywords = ['and', 'as', 'assert', 'break', 'class', 'continue', 'def', 'del', 'elif', 'else', 'except', 'exec', 'finally', 'for', 'from', 'global', 'if', 'import', 'in', 'is', 'lambda', 'not', 'or', 'pass', 'print', 'raise', 'return', 'try', 'while', 'with', 'yield']
+            #[' and', ' as', ' assert', ' break', ' class', ' continue', ' def', ' del', ' elif', ' else', ' except', ' exec', ' finally', ' for', ' from', ' global', ' if', ' import', ' in', ' is', ' lambda', ' not', ' or', ' pass', ' print', ' raise', ' return', ' try', ' while', ' with', ' yield','and ', 'as ', 'assert ', 'break ', 'class ', 'continue ', 'def ', 'del ', 'elif ', 'else ', 'except ', 'exec ', 'finally ', 'for ', 'from ', 'global ', 'if ', 'import ', 'in ', 'is ', 'lambda ', 'not ', 'or ', 'pass ', 'print ', 'raise ', 'return ', 'try ', 'while ', 'with ', 'yield ']
+            commentSigns = ["#"]
+        #for keyword in keywords:
+            #self.text.highlight_pattern(keyword, "blue")
+
+        self.text.highlight_keyword(keywords, "blue")
         self.text.tag_delete("green")
         self.text.tag_configure("green", foreground = "green")
-        self.text.highlight_line("#", "green")
+        for commentSign in commentSigns:
+            self.text.highlight_line(commentSign, "green")
             
     def getLineArray(self, lineNum):
         num = ""
@@ -133,7 +145,7 @@ class SimpleEditor(ScrolledText):
         self.tree.pack(side=LEFT, fill=Y)
         ScrolledText.__init__(self, parent, file=file)
         
-        self.text.config(font=('courier', 12, 'normal'))
+        self.text.config(font=('Lucida Console', 10, 'normal'))
 
     def populate_tree(self,tree, node):
         if tree.set(node, "type") != 'directory':
