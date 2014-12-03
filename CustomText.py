@@ -1,26 +1,22 @@
 import Tkinter as tk
 
 class CustomText(tk.Text):
-    '''A text widget with a new method, HighlightPattern 
-
-    example:
-
-    text = CustomText()
-    text.tag_configure("red",foreground="#ff0000")
-    text.HighlightPattern("this should be red", "red")
-
-    The highlight_pattern method is a simplified python 
-    version of the tcl code at http://wiki.tcl.tk/3246
-    '''
-    def __init__(self, *args, **kwargs):
+    
+    def __init__(self,*args, **kwargs):
+        self.line = kwargs.pop("line")
         tk.Text.__init__(self, *args, **kwargs)
+        self.tag_configure("current_line", background="#e9e9e9")
+        self._highlight_current_line()
+
+    def _highlight_current_line(self, interval=100):
+        self.tag_remove("current_line", 1.0, "end")
+        self.tag_add("current_line", "insert linestart", "insert lineend+1c")
+        line,column = self.index("insert").split(".")
+        self.line.configure(text="Line: "+line+", Column: "+str(int(column)+1))
+        self.after(interval, self._highlight_current_line)
 
     def highlight_line(self, pattern, tag, start="1.0", end="end", regexp=False):
-        '''Apply the given tag to all text that matches the given pattern
-
-        If 'regexp' is set to True, pattern will be treated as a regular expression
-        '''
-
+        
         start = self.index(start)
         end = self.index(end)
         self.mark_set("matchStart",start)
@@ -37,12 +33,27 @@ class CustomText(tk.Text):
             self.mark_set("matchEnd", "%s lineend" % index)
             self.tag_add(tag, "matchStart","matchEnd")
 
+    def highlight_comments(self, pattern, tag, start="1.0", end="end", regexp=False):
+        
+        start = self.index(start)
+        end = self.index(end)
+        self.mark_set("matchStart",start)
+        self.mark_set("matchEnd",start)
+        self.mark_set("searchLimit", end)
+
+        count = tk.IntVar()
+        while True:
+            index = self.search(pattern, "matchEnd","searchLimit",
+                                count=count, regexp=regexp)
+            if index == "": break
+            self.mark_set("matchStart", index)
+            
+            self.mark_set("matchEnd", "%s lineend" % index)
+            self.tag_add(tag, "matchStart","matchEnd")
+    
+
     def highlight_pattern(self, pattern, tag, start="1.0", end="end", regexp=False):
-        '''Apply the given tag to all text that matches the given pattern
-
-        If 'regexp' is set to True, pattern will be treated as a regular expression
-        '''
-
+        
         start = self.index(start)
         end = self.index(end)
         self.mark_set("matchStart",start)
@@ -59,11 +70,7 @@ class CustomText(tk.Text):
             self.tag_add(tag, "matchStart","matchEnd")
 
     def highlight_keyword(self, patterns, tag, start="1.0", end="end", regexp=False):
-        '''Apply the given tag to all text that matches the given pattern
-
-        If 'regexp' is set to True, pattern will be treated as a regular expression
-        '''
-
+        
         start = self.index(start)
         end = self.index(end)
         self.mark_set("matchStart",start)
@@ -81,8 +88,3 @@ class CustomText(tk.Text):
             
             if self.index("matchStart") == self.index("end"):
                 break
-            '''if word == "" or word == "\n": break
-            if word in patterns:
-                print "bazinga!"
-                self.tag_add(tag, "matchStart","matchStart wordend")
-                self.mark_set("matchStart", "matchStart wordend")'''
