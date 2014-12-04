@@ -1,5 +1,7 @@
 import Tkinter as tk
 
+from Highlighter import Highlighter
+
 class CustomText(tk.Text):
     
     def __init__(self,*args, **kwargs):
@@ -33,40 +35,48 @@ class CustomText(tk.Text):
             self.mark_set("matchEnd", "%s lineend" % index)
             self.tag_add(tag, "matchStart","matchEnd")
 
+    def highlight_q(self, tag):
+        highlighter = Highlighter()
+        
+        indices = highlighter.highlight_quotes(self.get("1.0","end"))
+        for index in indices:
+            self.tag_add(tag, index[0], index[1])
+    
     def highlight_quotes(self, tag, start="1.0", end="end", regexp=True):
         start = self.index(start)
         end = self.index(end)
-        self.mark_set("matchStart", start)
-        self.mark_set("matchEnd", start)
+        
+        self.mark_set("dmatchStart", start)
+        self.mark_set("dmatchEnd", start)
         self.mark_set("searchLimit", end)
 
+        doubleQuotes = []
+        
         count = tk.IntVar()
         while True:
-            index1 = self.search(r'\"', "matchEnd","searchLimit", count=count, regexp=regexp)
+            dindex1 = self.search(r'\"', "dmatchEnd","searchLimit", count=count, regexp=regexp)
 
-            if index1 == "": break
+            if dindex1 == "": break
             
             
-            temp = int(index1.split(".")[1])#+1
-            indx1 = ".".join([index1.split(".")[0], str(temp)])
+            dtemp = int(dindex1.split(".")[1])+1
+            dindx1 = ".".join([dindex1.split(".")[0], str(dtemp)])
             
-            index2 = self.search(r'\"',indx1,"searchLimit", count=count, regexp=regexp)
+            dindex2 = self.search(r'\"',dindx1,"searchLimit", count=count, regexp=regexp)
 
-            if index2 == "": index2 = "end"
+            if dindex2 == "": dindex2 = "end"
             
             
-            temp = int(index2.split(".")[1])#+1
-            indx2 = ".".join([index2.split(".")[0], str(temp)])
+            dtemp = int(dindex2.split(".")[1])+1
+            dindx2 = ".".join([dindex2.split(".")[0], str(dtemp)])
             
-            self.tag_add(tag, index1, indx2)
-
-            break
+            self.tag_add(tag, dindex1, dindx2)
 
             #break
             
             #self.mark_set("matchStart",str(float(index1)+(0.1)))
             
-            self.mark_set("matchEnd", indx2)
+            self.mark_set("dmatchEnd", dindx2)
             
     
 

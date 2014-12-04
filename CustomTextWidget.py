@@ -65,7 +65,7 @@ class ScrolledText(Frame):
         self.text.highlight_keyword(keywords, "blue")
         self.text.tag_delete("red")
         self.text.tag_configure("red", foreground = "#a05050")
-        self.text.highlight_quotes("red")
+        self.text.highlight_q("red")
         
         #for commentSign in commentSigns:
             #self.text.highlight_comments(commentSign, "green")
