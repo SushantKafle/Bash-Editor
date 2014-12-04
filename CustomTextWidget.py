@@ -5,9 +5,14 @@ from tkSimpleDialog import *
 from tkFileDialog import *
 from tkMessageBox import *
 
+from time import time
+
 from CustomText import CustomText
 
 class ScrolledText(Frame):
+    
+    keyTimeStamp = 0
+
     def __init__(self, parent=None, text='', file=None):
         Frame.__init__(self, parent)
         self.filename = ""
@@ -48,7 +53,11 @@ class ScrolledText(Frame):
         return "break"
     
     def key(self,event):
-        self.setKeywords();
+        if (time() - self.keyTimeStamp) > 0.5:
+            if self.text.edit_modified():
+                self.text.highlight_q()
+                self.setKeywords()
+        self.keyTimeStamp= time()
     
     def setKeywords(self):
         self.text.tag_delete("blue")
@@ -57,18 +66,12 @@ class ScrolledText(Frame):
         commentSigns = []
         if ".ksh" in self.filename:
             keywords = ["alias","bg","builtin","break","case","cd","command","continue","disown","echo","exec","exit","export","eval","FALSE","fg","for","function","getconf","getopts","hist","if","jobs","kill","let","newgrp","print","printf","pwd","read","readonly","return","select","set","shift","sleep","test","time","trap","TRUE","typeset","ulimit","umask","unalias","unset","until","wait","whence","while","do","done","esac","fi","then"]
-            commentSigns = ["#"]
+            #commentSigns = ["#"]
         elif ".py" in self.filename:
             keywords = ['and', 'as', 'assert', 'break', 'class', 'continue', 'def', 'del', 'elif', 'else', 'except', 'exec', 'finally', 'for', 'from', 'global', 'if', 'import', 'in', 'is', 'lambda', 'not', 'or', 'pass', 'print', 'raise', 'return', 'try', 'while', 'with', 'yield']
-            commentSigns = [r'#\(\[a-z,A-Z])']
+            #commentSigns = [r'#\(\[a-z,A-Z])']
 
         self.text.highlight_keyword(keywords, "blue")
-        self.text.tag_delete("red")
-        self.text.tag_configure("red", foreground = "#a05050")
-        self.text.highlight_q("red")
-        
-        #for commentSign in commentSigns:
-            #self.text.highlight_comments(commentSign, "green")
             
     def settext(self, text='', file=None):
         if file: 
