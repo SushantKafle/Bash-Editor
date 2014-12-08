@@ -33,28 +33,10 @@ class ScrolledText(Frame):
         sbar.grid(row=0,column=1, sticky=E+W+N+S)
         line.grid(row=1,column=0, sticky="E")
         self.text = text
-        text.bind("<Control-a>", self.selectall)
-        text.bind("<Control-s>", self.save)
         text.bind("<Key>", self.key)
 
-    def save(self,event):
-        if len(self.filename) == 0:
-            self.filename = asksaveasfilename()
-        if  self.filename:
-            alltext = self.gettext()                      
-            open(self.filename, 'w').write(alltext)
-            self.text.edit_modified(False)
-    
-    def selectall(self, event):
-        self.text.tag_add(SEL, '1.0', END)     
-        self.text.mark_set(INSERT, '1.0')         
-        self.text.see(INSERT)                    
-        self.text.focus()
-        return "break"
-    
     def key(self,event):
-        #if (time() - self.keyTimeStamp) > 0.5:
-        if self.text.edit_modified():
+        if (time() - self.keyTimeStamp) > 0.3:
             self.text.highlight_q()
             self.setKeywords()
         self.keyTimeStamp= time()
@@ -63,23 +45,27 @@ class ScrolledText(Frame):
         self.text.tag_delete("blue")
         self.text.tag_configure("blue", foreground = "blue")
         keywords = []
-        commentSigns = []
+        lineComment = ""
         if ".ksh" in self.filename:
             keywords = ["alias","bg","builtin","break","case","cd","command","continue","disown","echo","exec","exit","export","eval","FALSE","fg","for","function","getconf","getopts","hist","if","jobs","kill","let","newgrp","print","printf","pwd","read","readonly","return","select","set","shift","sleep","test","time","trap","TRUE","typeset","ulimit","umask","unalias","unset","until","wait","whence","while","do","done","esac","fi","then"]
-            #commentSigns = ["#"]
+            lineComment = "#"
         elif ".py" in self.filename:
             keywords = ['and', 'as', 'assert', 'break', 'class', 'continue', 'def', 'del', 'elif', 'else', 'except', 'exec', 'finally', 'for', 'from', 'global', 'if', 'import', 'in', 'is', 'lambda', 'not', 'or', 'pass', 'print', 'raise', 'return', 'try', 'while', 'with', 'yield']
-            #commentSigns = [r'#\(\[a-z,A-Z])']
+            lineComment = "#"
+        elif ".sh" in self.filename:
+            keywords = ["alias","bg","builtin","break","case","cd","command","continue","disown","echo","exec","exit","export","eval","FALSE","fg","for","function","getconf","getopts","hist","if","jobs","kill","let","newgrp","print","printf","pwd","read","readonly","return","select","set","shift","sleep","test","time","trap","TRUE","typeset","ulimit","umask","unalias","unset","until","wait","whence","while","do","done","esac","fi","then"]
+            lineComment = "#"
 
         self.text.highlight_keyword(keywords, "blue")
+        self.text.highlight_comments(lineComment)
             
     def settext(self, text='', file=None):
         if file: 
             text = open(file, 'r').read()
         self.text.delete('1.0', END)                   
         self.text.insert('1.0', text)
-        self.setKeywords();
         self.text.highlight_q()
+        self.setKeywords();
         self.text.mark_set(INSERT, '1.0')
         self.text.focus()
         

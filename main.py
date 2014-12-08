@@ -59,6 +59,13 @@ class SimpleEditor(ScrolledText):
         
         self.text.config(font=('Lucida Console', 10, 'normal'))
 
+        self.bindShortcuts();
+
+    def bindShortcuts(self):
+        self.text.bind("<Control-a>", self.onSelectAll)
+        self.text.bind("<Control-s>", self.onSave)
+        
+
     def populate_tree(self,tree, node):
         if tree.set(node, "type") != 'directory':
             return
@@ -92,6 +99,7 @@ class SimpleEditor(ScrolledText):
             if ans:
                 self.onSave()    
         self.filename = ""
+        self.parent.title(self.filename+" Bash Editor")
         self.fileSaved = False
         self.text.delete('1.0', 'end')
 
@@ -120,6 +128,7 @@ class SimpleEditor(ScrolledText):
                 self.populate_roots(tree)
             elif os.path.isfile(path):
                 self.filename = path
+                self.parent.title(self.filename+" Bash Editor")
                 self.settext(self.text, path)
 
     def autoscroll(self,sbar, first, last):
@@ -143,6 +152,7 @@ class SimpleEditor(ScrolledText):
         if filename:
             fileRoot ='/'.join(filename.split("/")[:-1])
             self.filename = filename
+            self.parent.title(self.filename+" Bash Editor")
             self.settext(self.text, filename)
             if os.path.isdir(fileRoot):
                 self.tree.delete(self.tree.get_children(''))
@@ -161,7 +171,7 @@ class SimpleEditor(ScrolledText):
         return 
         
         
-    def onSelectAll(self):
+    def onSelectAll(self,event=None):
         self.text.tag_add(SEL, '1.0', END)     
         self.text.mark_set(INSERT, '1.0')         
         self.text.see(INSERT)                    
@@ -179,11 +189,11 @@ class SimpleEditor(ScrolledText):
             ans = askokcancel('Confirm exit', "Sure you want to Quit?")
             if ans: self.parent.destroy()
         
-    def onSave(self):
+    def onSave(self,event=None):
         if len(self.filename) == 0:
             self.filename = asksaveasfilename()
         if  self.filename:
-            print self.filename
+            self.parent.title(self.filename+" Bash Editor")
             alltext = self.gettext()                      
             open(self.filename, 'w').write(alltext)
             self.text.edit_modified(False)
@@ -191,7 +201,7 @@ class SimpleEditor(ScrolledText):
     def onSaveAs(self):
         self.filename = asksaveasfilename()
         if  self.filename:
-            print self.filename
+            self.parent.title(self.filename+" Bash Editor")
             alltext = self.gettext()                      
             open(self.filename, 'w').write(alltext)
             
@@ -228,13 +238,13 @@ class SimpleEditor(ScrolledText):
                 self.text.see(INSERT)                    
                 self.text.focus()                        
 
-#if there are no cmdline arguments, open a new file.  
 root = Tk()
 
 if len(sys.argv) > 1:
 	app = SimpleEditor(root,file=sys.argv[1])                
 else: 
         app = SimpleEditor(root)
+root.wm_state('zoomed')
 root.grid_columnconfigure(0, weight=1)
 root.grid_rowconfigure(0, weight=1)
 root.protocol('WM_DELETE_WINDOW', app.onQuit)

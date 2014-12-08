@@ -79,11 +79,32 @@ class CustomText(tk.Text):
     
     	self.tag_delete("red")
         self.tag_configure("red", foreground = "#f05050")
+
+        self.tag_delete("green")
+        self.tag_configure("green", foreground = "#50f050")
+
+        data = self.get("1.0","end")
         
-        indices = self.highlighter.highlight_quotes(self.get("1.0","end"))
+        indices = self.highlighter.highlight_quotes(data)
         for index in indices:
         	if len(index) > 1:
 	            self.tag_add("red", index[0], index[1])
+            
+	
+
+    def highlight_comments(self,lineComment):
+        if len(lineComment)==0:
+            return 
+        self.tag_delete("green")
+        self.tag_configure("green", foreground = "#50f050")
+
+        data = self.get("1.0","end")
+        comments = self.highlighter.highlight_line_comment(data,lineComment)
+	
+	for index in comments:
+            if len(index) > 1:
+	            self.tag_add("green", index[0], index[1])
+        
 
     def highlight_keyword(self, patterns, tag, start="1.0", end="end", regexp=False):
         start = self.index(start)
