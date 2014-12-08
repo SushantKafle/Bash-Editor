@@ -41,9 +41,9 @@ class ScrolledText(Frame):
         if len(self.filename) == 0:
             self.filename = asksaveasfilename()
         if  self.filename:
-            print self.filename
             alltext = self.gettext()                      
             open(self.filename, 'w').write(alltext)
+            self.text.edit_modified(False)
     
     def selectall(self, event):
         self.text.tag_add(SEL, '1.0', END)     
@@ -53,10 +53,10 @@ class ScrolledText(Frame):
         return "break"
     
     def key(self,event):
-        if (time() - self.keyTimeStamp) > 0.5:
-            if self.text.edit_modified():
-                self.text.highlight_q()
-                self.setKeywords()
+        #if (time() - self.keyTimeStamp) > 0.5:
+        if self.text.edit_modified():
+            self.text.highlight_q()
+            self.setKeywords()
         self.keyTimeStamp= time()
     
     def setKeywords(self):
@@ -79,6 +79,7 @@ class ScrolledText(Frame):
         self.text.delete('1.0', END)                   
         self.text.insert('1.0', text)
         self.setKeywords();
+        self.text.highlight_q()
         self.text.mark_set(INSERT, '1.0')
         self.text.focus()
         

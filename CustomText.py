@@ -78,7 +78,7 @@ class CustomText(tk.Text):
     def highlight_q(self):
     
     	self.tag_delete("red")
-        self.tag_configure("red", foreground = "#a05050")
+        self.tag_configure("red", foreground = "#f05050")
         
         indices = self.highlighter.highlight_quotes(self.get("1.0","end"))
         for index in indices:

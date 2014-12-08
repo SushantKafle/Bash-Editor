@@ -10,10 +10,11 @@ import glob
 
 from CustomTextWidget import ScrolledText
 
-class SimpleEditor(ScrolledText):                        
+class SimpleEditor(ScrolledText):
+    
     def __init__(self, parent=None, file=None):
-        
         frm = Frame(parent)
+        self.parent = parent
         frm.pack(fill=X)
 
         parent.title("Bash Editor")
@@ -22,6 +23,7 @@ class SimpleEditor(ScrolledText):
         parent.config(menu=menubar)
         
         fileMenu = Menu(menubar,tearoff=0)
+        fileMenu.add_command(label="New", command=self.newFile)
         fileMenu.add_command(label="Open Project", command=self.askDirectory)
         fileMenu.add_command(label="Open File", command=self.askopenfilename)
         fileMenu.add_command(label="Save", command=self.onSave)
@@ -83,6 +85,15 @@ class SimpleEditor(ScrolledText):
                 size = os.stat(p).st_size
                 tree.set(id, "size", "%d bytes" % size)
 
+
+    def newFile(self):
+        if self.text.edit_modified():
+            ans = askyesno('Save File',"Do you want to save before quiting?",icon='warning')
+            if ans:
+                self.onSave()    
+        self.filename = ""
+        self.fileSaved = False
+        self.text.delete('1.0', 'end')
 
     def populate_roots(self,tree, path=''):
         if len(path) == 0:
@@ -158,8 +169,15 @@ class SimpleEditor(ScrolledText):
         return "break"
         
     def onQuit(self):
-        ans = askokcancel('Confirm exit', "Sure you want to Quit?")
-        if ans: self.quit()
+        if self.text.edit_modified():
+            ans = askyesno('Save File',"Do you want to save before quiting?",icon='warning')
+            if ans:
+                self.onSave()
+            else:
+                self.parent.destroy()
+        else:    
+            ans = askokcancel('Confirm exit', "Sure you want to Quit?")
+            if ans: self.parent.destroy()
         
     def onSave(self):
         if len(self.filename) == 0:
@@ -168,6 +186,7 @@ class SimpleEditor(ScrolledText):
             print self.filename
             alltext = self.gettext()                      
             open(self.filename, 'w').write(alltext)
+            self.text.edit_modified(False)
 
     def onSaveAs(self):
         self.filename = asksaveasfilename()
@@ -209,7 +228,7 @@ class SimpleEditor(ScrolledText):
                 self.text.see(INSERT)                    
                 self.text.focus()                        
 
-#if there are no cmdline arguments, open a new file.
+#if there are no cmdline arguments, open a new file.  
 root = Tk()
 
 if len(sys.argv) > 1:
@@ -218,4 +237,5 @@ else:
         app = SimpleEditor(root)
 root.grid_columnconfigure(0, weight=1)
 root.grid_rowconfigure(0, weight=1)
+root.protocol('WM_DELETE_WINDOW', app.onQuit)
 root.mainloop()
