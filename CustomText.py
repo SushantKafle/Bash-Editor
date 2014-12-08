@@ -104,21 +104,38 @@ class CustomText(tk.Text):
 	for index in comments:
             if len(index) > 1:
 	            self.tag_add("green", index[0], index[1])
+
+    def highlight_func(self,func,funcStart):
+        if len(func)==0:
+            return
+        
+        self.tag_delete("func")
+        self.tag_configure("func", foreground = "#5050f0")
+
+        data = self.get("1.0","end")
+        funcs = self.highlighter.highlight_func(data,func,funcStart)
+	
+	for index in funcs:
+            if len(index) > 1:
+	            self.tag_add("func", index[0], index[1])
         
 
-    def highlight_keyword(self, patterns, tag, start="1.0", end="end", regexp=False):
-        start = self.index(start)
-        end = self.index(end)
+    def highlight_keyword(self, patterns):
+        start = self.index("1.0")
+        end = self.index("end")
         self.mark_set("matchStart",start)
         self.mark_set("matchEnd",start)
         self.mark_set("searchLimit", end)
 
+        self.text.tag_delete("blue")
+        self.text.tag_configure("blue", foreground = "blue")
+        
         count = tk.IntVar()
         while True:
             word = self.get("matchStart","matchStart wordend")
             
             if word in patterns:
-                self.tag_add(tag, "matchStart","matchStart wordend")
+                self.tag_add("blue", "matchStart","matchStart wordend")
             
             self.mark_set("matchStart", '%s+%dc' % ("matchStart", len(word)))
             

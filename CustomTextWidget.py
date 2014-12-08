@@ -42,21 +42,28 @@ class ScrolledText(Frame):
         self.keyTimeStamp= time()
     
     def setKeywords(self):
-        self.text.tag_delete("blue")
-        self.text.tag_configure("blue", foreground = "blue")
         keywords = []
         lineComment = ""
+        function = ""
+        functionStart = ""
         if ".ksh" in self.filename:
             keywords = ["alias","bg","builtin","break","case","cd","command","continue","disown","echo","exec","exit","export","eval","FALSE","fg","for","function","getconf","getopts","hist","if","jobs","kill","let","newgrp","print","printf","pwd","read","readonly","return","select","set","shift","sleep","test","time","trap","TRUE","typeset","ulimit","umask","unalias","unset","until","wait","whence","while","do","done","esac","fi","then"]
             lineComment = "#"
+            function = "function"
+            functionStart = "{"
         elif ".py" in self.filename:
             keywords = ['and', 'as', 'assert', 'break', 'class', 'continue', 'def', 'del', 'elif', 'else', 'except', 'exec', 'finally', 'for', 'from', 'global', 'if', 'import', 'in', 'is', 'lambda', 'not', 'or', 'pass', 'print', 'raise', 'return', 'try', 'while', 'with', 'yield']
             lineComment = "#"
+            function = "def"
+            functionStart = ":"
+            
         elif ".sh" in self.filename:
             keywords = ["alias","bg","builtin","break","case","cd","command","continue","disown","echo","exec","exit","export","eval","FALSE","fg","for","function","getconf","getopts","hist","if","jobs","kill","let","newgrp","print","printf","pwd","read","readonly","return","select","set","shift","sleep","test","time","trap","TRUE","typeset","ulimit","umask","unalias","unset","until","wait","whence","while","do","done","esac","fi","then"]
             lineComment = "#"
-
-        self.text.highlight_keyword(keywords, "blue")
+            function = "function"
+            functionStart = "{"
+            
+        self.text.highlight_func(function, functionStart)
         self.text.highlight_comments(lineComment)
             
     def settext(self, text='', file=None):

@@ -11,11 +11,19 @@ class Highlighter():
 
         return meta
             
-    def copy_matches(self, matches):
+    def copy_matches(self, matches,appS=0,appE=0):
         result = []
         for match in matches:
-            result.append([match.start(0), match.end(0)])
+            result.append([match.start(0)+appS, match.end(0)-appE])
         return result
+
+    def line_comment(self, data, symbol):
+        lines = data.split("\n");
+
+        for line in lines:
+            dq=False
+            sq=False
+            for ###
 
     def highlight_line_comment(self, data, symbol):
         re_comment = r""+symbol+"(.*)"
@@ -29,14 +37,23 @@ class Highlighter():
             for c in comments:
                 if q[0] < c[0] and q[1] > c[0]:
                     result.remove(c)
-                
+               
         return self.getIndices(result, self.pre_meta_data)
         
-            
+    def highlight_func(self,data, func, funcStart):
+        re_func = r""+func+"(.*)"+funcStart
+        appS = len(func)
+        appE = len(funcStart)
+        funcs = self.copy_matches(re.finditer(re_func,data),appS,appE)
+        
+        return self.getIndices(funcs, self.pre_meta_data)
+
+    
     def highlight_quotes(self, data):
         self.pre_meta_data = self.getMetaData(data)
         re_quote = r"([\"'])((?:(?!\1)[^\\]|(?:\\\\)*\\[^\\])*)\1"
-        self.quotes = self.copy_matches(re.finditer(re_quote, data,re.DOTALL))
+        self.quotes = self.copy_matches(re.finditer(re_quote, data))
+
         return self.getIndices(self.quotes, self.pre_meta_data)
 
 
