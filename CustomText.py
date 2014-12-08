@@ -92,16 +92,28 @@ class CustomText(tk.Text):
             
 	
 
-    def highlight_comments(self,lineComment):
+    def basicHighlights(self,lineComment):
         if len(lineComment)==0:
             return 
+
+        
+        self.tag_delete("red")
+        self.tag_configure("red", foreground = "#f05050")
+
+        data = self.get("1.0","end")
+        
+        [qindices,cindices] = self.highlighter.basicHighlights(data,lineComment)
+
+        for index in qindices:
+        	if len(index) > 1:
+	            self.tag_add("red", index[0], index[1])
+
         self.tag_delete("green")
         self.tag_configure("green", foreground = "#50f050")
 
-        data = self.get("1.0","end")
-        comments = self.highlighter.highlight_line_comment(data,lineComment)
+        #comments = self.highlighter.line_comment(data,lineComment)
 	
-	for index in comments:
+	for index in cindices:
             if len(index) > 1:
 	            self.tag_add("green", index[0], index[1])
 
@@ -127,8 +139,8 @@ class CustomText(tk.Text):
         self.mark_set("matchEnd",start)
         self.mark_set("searchLimit", end)
 
-        self.text.tag_delete("blue")
-        self.text.tag_configure("blue", foreground = "blue")
+        self.tag_delete("blue")
+        self.tag_configure("blue", foreground = "blue")
         
         count = tk.IntVar()
         while True:

@@ -244,7 +244,7 @@ if len(sys.argv) > 1:
 	app = SimpleEditor(root,file=sys.argv[1])                
 else: 
         app = SimpleEditor(root)
-root.wm_state('zoomed')
+#root.wm_state('zoomed')
 root.grid_columnconfigure(0, weight=1)
 root.grid_rowconfigure(0, weight=1)
 root.protocol('WM_DELETE_WINDOW', app.onQuit)

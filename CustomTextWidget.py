@@ -37,7 +37,7 @@ class ScrolledText(Frame):
 
     def key(self,event):
         if (time() - self.keyTimeStamp) > 0.3:
-            self.text.highlight_q()
+            #self.text.highlight_q()
             self.setKeywords()
         self.keyTimeStamp= time()
     
@@ -64,14 +64,15 @@ class ScrolledText(Frame):
             functionStart = "{"
             
         self.text.highlight_func(function, functionStart)
-        self.text.highlight_comments(lineComment)
+        self.text.basicHighlights(lineComment)
+        self.text.highlight_keyword(keywords)
             
     def settext(self, text='', file=None):
         if file: 
             text = open(file, 'r').read()
         self.text.delete('1.0', END)                   
         self.text.insert('1.0', text)
-        self.text.highlight_q()
+        #self.text.highlight_q()
         self.setKeywords();
         self.text.mark_set(INSERT, '1.0')
         self.text.focus()

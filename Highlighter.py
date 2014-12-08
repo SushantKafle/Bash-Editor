@@ -1,4 +1,6 @@
 import re
+
+#highlights the text
 class Highlighter():
 
     quotes = []
@@ -17,13 +19,40 @@ class Highlighter():
             result.append([match.start(0)+appS, match.end(0)-appE])
         return result
 
-    def line_comment(self, data, symbol):
+    def basicHighlights(self, data, symbol):
         lines = data.split("\n");
+        commentIndices = []
+        quotesIndices = []
+        
+        dq=False
+        sq=False
+        buf=""
+        for i,line in enumerate(lines):
+            lcm=False
+            for j,letter in enumerate(line):
+            	if letter=='"':
+            		if not sq:
+                            if not dq:
+                                buf = str(i+1)+"."+str(j)
+                            else:
+                                quotesIndices.append([buf, str(i+1)+"."+str(j+1)])
+                            dq = not dq
+            			
+            	elif letter=="'":
+	            	if not dq:
+                            if not sq:
+                                buf = str(i+1)+"."+str(j)
+                            else:
+                                quotesIndices.append([buf,str(i+1)+"."+str(j+1)])
+                            sq = not sq
+	            			
+            	elif letter == symbol:
+            		if not dq and not sq:
+            			commentIndices.append([str(i+1)+"."+str(j), str(i+1)+"."+str(len(line))])
+            			break
 
-        for line in lines:
-            dq=False
-            sq=False
-            for ###
+        return [quotesIndices, commentIndices]
+            			
 
     def highlight_line_comment(self, data, symbol):
         re_comment = r""+symbol+"(.*)"
@@ -41,12 +70,12 @@ class Highlighter():
         return self.getIndices(result, self.pre_meta_data)
         
     def highlight_func(self,data, func, funcStart):
-        re_func = r""+func+"(.*)"+funcStart
+        re_func = r"("+func+"(.*)"+funcStart+")"
         appS = len(func)
         appE = len(funcStart)
         funcs = self.copy_matches(re.finditer(re_func,data),appS,appE)
         
-        return self.getIndices(funcs, self.pre_meta_data)
+        return self.getIndices(funcs, self.getMetaData(data))
 
     
     def highlight_quotes(self, data):
