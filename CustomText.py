@@ -1,6 +1,7 @@
 import Tkinter as tk
 
 from Highlighter import Highlighter
+from Helper import Helper
 
 class CustomText(tk.Text):
 
@@ -10,6 +11,7 @@ class CustomText(tk.Text):
         self.line = kwargs.pop("line")
         tk.Text.__init__(self, *args, **kwargs)
         self.highlighter = Highlighter()
+        self.helper = Helper()
         self.tag_configure("current_line", background="#e9e9e9")
         self._highlight_current_line()
 
@@ -25,7 +27,7 @@ class CustomText(tk.Text):
 	    	self.findSimilarWords()
 	    	
         self.after(interval, self._highlight_current_line)
-
+        
 
     def findSimilarWords(self):
         seltext = self.get("sel.first", "sel.last")
@@ -96,33 +98,34 @@ class CustomText(tk.Text):
         if len(lineComment)==0:
             return 
 
-        
-        self.tag_delete("red")
-        self.tag_configure("red", foreground = "#f05050")
+        self.tag_delete("quote")
+        self.tag_configure("quote", foreground = "#33ae33")
 
         data = self.get("1.0","end")
+
+        self.helper.update(data)
         
         [qindices,cindices] = self.highlighter.basicHighlights(data,lineComment)
 
         for index in qindices:
         	if len(index) > 1:
-	            self.tag_add("red", index[0], index[1])
+	            self.tag_add("quote", index[0], index[1])
 
-        self.tag_delete("green")
-        self.tag_configure("green", foreground = "#50f050")
+        self.tag_delete("comment")
+        self.tag_configure("comment", foreground = "brown")
 
         #comments = self.highlighter.line_comment(data,lineComment)
 	
 	for index in cindices:
             if len(index) > 1:
-	            self.tag_add("green", index[0], index[1])
+	            self.tag_add("comment", index[0], index[1])
 
     def highlight_func(self,func,funcStart):
         if len(func)==0:
             return
         
         self.tag_delete("func")
-        self.tag_configure("func", foreground = "#5050f0")
+        self.tag_configure("func", foreground = "blue")
 
         data = self.get("1.0","end")
         funcs = self.highlighter.highlight_func(data,func,funcStart)
@@ -139,15 +142,15 @@ class CustomText(tk.Text):
         self.mark_set("matchEnd",start)
         self.mark_set("searchLimit", end)
 
-        self.tag_delete("blue")
-        self.tag_configure("blue", foreground = "blue")
+        self.tag_delete("keyword")
+        self.tag_configure("keyword", foreground = "#FFA50A")
         
         count = tk.IntVar()
         while True:
             word = self.get("matchStart","matchStart wordend")
             
             if word in patterns:
-                self.tag_add("blue", "matchStart","matchStart wordend")
+                self.tag_add("keyword", "matchStart","matchStart wordend")
             
             self.mark_set("matchStart", '%s+%dc' % ("matchStart", len(word)))
             

@@ -64,8 +64,8 @@ class ScrolledText(Frame):
             functionStart = "{"
             
         self.text.highlight_func(function, functionStart)
-        self.text.basicHighlights(lineComment)
         self.text.highlight_keyword(keywords)
+        self.text.basicHighlights(lineComment)
             
     def settext(self, text='', file=None):
         if file: 
