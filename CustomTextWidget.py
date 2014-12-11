@@ -14,6 +14,7 @@ class ScrolledText(Frame):
     keyTimeStamp = 0
 
     def __init__(self, parent=None, text='', file=None):
+        self.parent = parent
         Frame.__init__(self, parent)
         self.filename = ""
         self.var = StringVar()
@@ -34,9 +35,10 @@ class ScrolledText(Frame):
         line.grid(row=1,column=0, sticky="E")
         self.text = text
         text.bind("<Key>", self.key)
+        text.bind("<Control-Button-1>", self.helperSupport)
 
     def key(self,event):
-        if (time() - self.keyTimeStamp) > 0.3:
+        if (time() - self.keyTimeStamp) > 0.5:
             #self.text.highlight_q()
             self.setKeywords()
         self.keyTimeStamp= time()
@@ -79,3 +81,13 @@ class ScrolledText(Frame):
         
     def gettext(self):                               
         return self.text.get('1.0', END+'-1c')
+
+    def helperSupport(self,event):
+        name = self.text.get('current wordstart','current wordend')
+        filename = self.text.helper.getFunctionParam(name)
+        if filename != "":
+            self.text.filename = filename
+            self.parent.title(filename+" Bash Editor")
+            self.settext(self.text, filename)
+            self.text.setfocus(r"function "+name)
+            

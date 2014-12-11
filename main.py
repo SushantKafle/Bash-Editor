@@ -11,6 +11,8 @@ import glob
 from CustomTextWidget import ScrolledText
 
 class SimpleEditor(ScrolledText):
+
+    currentDir = ""
     
     def __init__(self, parent=None, file=None):
         frm = Frame(parent)
@@ -50,7 +52,7 @@ class SimpleEditor(ScrolledText):
         self.tree.heading("size", text="File Size", anchor='w')
         self.tree.column("size", stretch=0, width=100)
 
-        self.populate_roots(self.tree)
+        
         self.tree.bind('<<TreeviewOpen>>', self.update_tree)
         self.tree.bind('<Double-Button-1>', self.change_dir)
         
@@ -58,7 +60,7 @@ class SimpleEditor(ScrolledText):
         ScrolledText.__init__(self, parent, file=file)
         
         self.text.config(font=('Lucida Console', 10, 'normal'))
-
+        self.populate_roots(self.tree)
         self.bindShortcuts();
 
     def bindShortcuts(self):
@@ -108,6 +110,8 @@ class SimpleEditor(ScrolledText):
             dir = os.path.abspath('.').replace('\\', '/')
         else:
             dir = path
+
+        self.text.currentDir = dir
         
         node = tree.insert('', 'end', text=dir, values=[dir, "directory"])
         self.populate_tree(tree, node)

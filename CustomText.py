@@ -1,11 +1,12 @@
 import Tkinter as tk
-
+import re
 from Highlighter import Highlighter
 from Helper import Helper
 
 class CustomText(tk.Text):
 
     keywordSelection = False
+    currentDir = ""
     
     def __init__(self,*args, **kwargs):
         self.line = kwargs.pop("line")
@@ -103,7 +104,7 @@ class CustomText(tk.Text):
 
         data = self.get("1.0","end")
 
-        self.helper.update(data)
+        self.helper.update(data,self.currentDir)
         
         [qindices,cindices] = self.highlighter.basicHighlights(data,lineComment)
 
@@ -135,6 +136,15 @@ class CustomText(tk.Text):
 	            self.tag_add("func", index[0], index[1])
         
 
+
+    def setfocus(self,exp):
+
+        #data = self.get("1.0","end")
+        index = self.search(exp, "1.0", "end", count=tk.IntVar(), regexp=True)
+        self.see(index)
+        self.focus()
+        
+    
     def highlight_keyword(self, patterns):
         start = self.index("1.0")
         end = self.index("end")
