@@ -7,6 +7,9 @@ class CustomText(tk.Text):
 
     keywordSelection = False
     currentDir = ""
+    home=""
+    lib=""
+    env=""
     
     def __init__(self,*args, **kwargs):
         self.line = kwargs.pop("line")
@@ -25,7 +28,7 @@ class CustomText(tk.Text):
             line,column = self.index("insert").split(".")
             self.line.configure(text="Line: "+line+", Column: "+str(int(column)+1))
         else:
-	    	self.findSimilarWords()
+	    self.findSimilarWords()
 	    	
         self.after(interval, self._highlight_current_line)
         
@@ -104,7 +107,9 @@ class CustomText(tk.Text):
 
         data = self.get("1.0","end")
 
-        self.helper.update(data,self.currentDir)
+        #self.helper.smart_update(data,self.currentDir)
+
+        #self.helper.update(self.currentDir)
         
         [qindices,cindices] = self.highlighter.basicHighlights(data,lineComment)
 

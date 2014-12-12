@@ -57,9 +57,9 @@ class SimpleEditor(ScrolledText):
         self.tree.bind('<Double-Button-1>', self.change_dir)
         
         self.tree.pack(side=LEFT, fill=Y)
-        ScrolledText.__init__(self, parent, file=file)
-        
+        ScrolledText.__init__(self, parent, file=file)        
         self.text.config(font=('Lucida Console', 10, 'normal'))
+        self.text.edit_modified(False)
         self.populate_roots(self.tree)
         self.bindShortcuts();
 
@@ -112,6 +112,11 @@ class SimpleEditor(ScrolledText):
             dir = path
 
         self.text.currentDir = dir
+        self.text.home = dir
+        self.text.lib = self.text.home+"/lib"
+        self.text.env = self.text.home+"/etc/ENV.cfg"
+
+        self.text.helper.update({'lib':self.text.lib,'env':self.text.env})
         
         node = tree.insert('', 'end', text=dir, values=[dir, "directory"])
         self.populate_tree(tree, node)
@@ -206,7 +211,8 @@ class SimpleEditor(ScrolledText):
         self.filename = asksaveasfilename()
         if  self.filename:
             self.parent.title(self.filename+" Bash Editor")
-            alltext = self.gettext()                      
+            alltext = self.gettext()
+            self.text.edit_modified(False)
             open(self.filename, 'w').write(alltext)
             
 

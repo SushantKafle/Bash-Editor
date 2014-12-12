@@ -1,5 +1,6 @@
 import re
-import os.path
+from os import listdir
+from os.path import isfile, join, isdir
 
 class Helper():
 
@@ -19,7 +20,28 @@ class Helper():
         # values = { "key": [list]}
         self.defaults = values
 
-    def update(self,data,curDir):
+    def update(self,param={}):
+        files = []
+        self.functions={}
+        if 'lib' in param:
+            LIB_DIR = param['lib']
+            if isdir(LIB_DIR):
+                files = [LIB_DIR+"/"+f for f in listdir(LIB_DIR) if isfile(join(LIB_DIR,f))]
+            
+        if 'env' in param:
+            ENV_FILE = param['env']
+            if isfile(ENV_FILE):
+                files.append(ENV_FILE)
+        
+        for f in files:
+            data = open(f,'r').read()
+            for line in data.split("\n"):
+                r_func = r"function(.*)"
+                func = re.findall(r_func,line)
+                for fu in func:
+                    self.functions[fu.replace(" ","").replace("{","")]=f
+
+    def smart_update(self,data,curDir):
         self.curDir = curDir
         self.variables = {}
         self.linkedDocs = []
@@ -45,38 +67,46 @@ class Helper():
             
         searchableData = data
         inrLength = 0
-        loop = len(self.linkedDocs)
-        for i in range(loop):
-                pos = self.linkedDocs[i][1]
-                self.linkedDocs[i] = [self.resolve(self.linkedDocs[i],searchableData,inrLength),pos]
-                print self.linkedDocs
-                searchableData,binr = self.appendData(searchableData, self.linkedDocs[i],inrLength)
-                print binr
-                inrLength += binr 
+
+        for i,doc in enumerate(self.linkedDocs):
+            pos = self.linkedDocs[i][1]
+            self.linkedDocs[i] = [self.resolve(self.linkedDocs[i],searchableData,inrLength),pos]
+            searchableData,binr = self.appendData(searchableData, self.linkedDocs[i],inrLength)
+            inrLength += binr
 
         self.getAllFunctions();
+        #print "---\n",self.linkedDocs
+        #print self.functions,"\n-----\n"
 
     def getAllFunctions(self):
         for docs in self.linkedDocs:
             path,pos = docs
-            if os.path.isfile(path):
+            if isfile(path):
                 docData = open(path,'r').read()
+                #print docData
                 for line in docData.split("\n"):
-                    r_func = r"function(.*){"
+                    r_func = r"function(.*)"
                     func = re.findall(r_func,line)
                     for f in func:
-                        self.functions[f.replace(" ","")]=path
+                        self.functions[f.replace(" ","").replace("{","")]=path
  
 
     def appendData(self,data,doc,inr):
-        print doc[1],inr
-        print data
         pos2insert = doc[1]+inr
-        if os.path.isfile(doc[0]):
+        if isfile(doc[0]):
             newData = open(doc[0],'r').read()
+            for lineNum,line in enumerate(newData.split("\n")):
+                try:
+                    #may be line executed something
+                    if line.replace(" ","")[0] == ".":
+                        r_ex = r".(.*)"
+                        path = re.findall(r_ex,line)
+                        for p in path:
+                            self.linkedDocs.append([p.replace(" ",""),lineNum])
+                except:
+                    continue
             lines = data.split("\n")
-            length = len(lines)
-            print lines[pos2insert]
+            length = len(newData.split('\n'))
             lines[pos2insert] = newData
             return ['\n'.join(lines),length]
 

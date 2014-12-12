@@ -77,6 +77,7 @@ class ScrolledText(Frame):
         #self.text.highlight_q()
         self.setKeywords();
         self.text.mark_set(INSERT, '1.0')
+        self.text.edit_modified(False)
         self.text.focus()
         
     def gettext(self):                               
@@ -86,8 +87,11 @@ class ScrolledText(Frame):
         name = self.text.get('current wordstart','current wordend')
         filename = self.text.helper.getFunctionParam(name)
         if filename != "":
-            self.text.filename = filename
-            self.parent.title(filename+" Bash Editor")
-            self.settext(self.text, filename)
-            self.text.setfocus(r"function "+name)
+            if filename == ".":
+                self.text.setfocus(r"function "+name)
+            else:
+                self.text.filename = filename
+                self.parent.title(filename+" Bash Editor")
+                self.settext(self.text, filename)
+                self.text.setfocus(r"function "+name)
             
