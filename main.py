@@ -4,6 +4,7 @@ import tkFileDialog
 from tkSimpleDialog import *
 from tkFileDialog import *
 from tkMessageBox import *
+import tkFont
 
 import os
 import glob
@@ -57,8 +58,9 @@ class SimpleEditor(ScrolledText):
         self.tree.bind('<Double-Button-1>', self.change_dir)
         
         self.tree.pack(side=LEFT, fill=Y)
-        ScrolledText.__init__(self, parent, file=file)        
-        self.text.config(font=('Lucida Console', 10, 'normal'))
+        ScrolledText.__init__(self, parent, file=file)    
+        #f = tkFont.Font(family='Lucida Console', size=10)    
+        self.text.config(font=('Lucida Console', 10, 'normal')) #f, tabs=(4*f.measure(0),'left'),tabstyle='wordprocessor')#
         self.text.edit_modified(False)
         self.populate_roots(self.tree)
         self.bindShortcuts();
